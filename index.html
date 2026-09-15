@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paisa Calc — EMI, SIP, GST & Compound Interest</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a5344">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<!-- ============================================================
+  GOOGLE ADSENSE SETUP
+  1. AdSense account banao: https://www.google.com/adsense
+  2. Site add karo aur approval ka wait karo (kabhi kabhi 1-2 weeks lagte hain)
+  3. Approval ke baad AdSense aapko ek "ca-pub-XXXXXXXXXXXXXXXX" client ID dega
+  4. Neeche wali script tag mein "ca-pub-XXXXXXXXXXXXXXXX" ko apne asli ID se replace karo
+  5. Har <ins class="adsbygoogle"> block mein "data-ad-slot" ko AdSense dashboard
+     se mile hue slot ID se replace karo (har ad unit ka alag ID hota hai)
+============================================================= -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+     crossorigin="anonymous"></script>
+
+<style>
+  :root{
+    --bg: #ffffff;
+    --panel: #f1f4f2;
+    --ink: #142620;
+    --ink-soft: #4b5f57;
+    --teal: #0e6e58;
+    --teal-dark: #0a5344;
+    --gold: #b8862f;
+    --line: #dde3e0;
+    --danger: #a4402f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: 'Iowan Old Style', 'Georgia', serif;
+    line-height:1.5;
+  }
+  .num, input, .result-value{
+    font-family: 'Menlo', 'SF Mono', Consolas, monospace;
+  }
+  header{
+    padding:28px 20px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  header h1{
+    margin:0;
+    font-size:1.5rem;
+    letter-spacing:-0.01em;
+    font-weight:600;
+  }
+  header p{
+    margin:6px 0 0;
+    color:var(--ink-soft);
+    font-size:0.92rem;
+    font-family: -apple-system, sans-serif;
+  }
+  .tabs{
+    display:flex;
+    overflow-x:auto;
+    border-bottom:1px solid var(--line);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab{
+    flex:0 0 auto;
+    padding:14px 16px;
+    font-family:-apple-system, sans-serif;
+    font-size:0.88rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    border-bottom:3px solid transparent;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .tab.active{
+    color:var(--teal-dark);
+    border-bottom-color:var(--teal);
+  }
+  main{
+    padding:22px 20px 60px;
+    max-width:520px;
+    margin:0 auto;
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .field{
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-family:-apple-system, sans-serif;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .field input{
+    width:100%;
+    padding:11px 12px;
+    font-size:1rem;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--panel);
+    color:var(--ink);
+  }
+  .field input:focus{
+    outline:none;
+    border-color:var(--teal);
+  }
+  .result{
+    margin-top:24px;
+    padding:20px;
+    background:var(--teal-dark);
+    border-radius:10px;
+    color:#fff;
+  }
+  .result .label{
+    font-family:-apple-system, sans-serif;
+    font-size:0.78rem;
+    color:#bcd9d0;
+    margin-bottom:4px;
+  }
+  .result-value{
+    font-size:1.9rem;
+    font-weight:600;
+    color:var(--gold);
+    display:block;
+    margin-bottom:14px;
+  }
+  .breakdown{
+    display:flex;
+    justify-content:space-between;
+    font-family:-apple-system, sans-serif;
+    font-size:0.85rem;
+    padding:8px 0;
+    border-top:1px solid rgba(255,255,255,0.15);
+  }
+  .breakdown span:last-child{
+    font-family:'Menlo','SF Mono',Consolas,monospace;
+    color:#fff;
+  }
+  .note{
+    margin-top:16px;
+    font-family:-apple-system, sans-serif;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+  .ad-slot{
+    margin:24px auto;
+    max-width:520px;
+    min-height:90px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--panel);
+    border:1px dashed var(--line);
+    border-radius:8px;
+    font-family:-apple-system, sans-serif;
+    font-size:0.75rem;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:8px;
+  }
+  footer{
+    text-align:center;
+    padding:20px;
+    font-family:-apple-system, sans-serif;
+    font-size:0.75rem;
+    color:var(--ink-soft);
+    border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Paisa Calc</h1>
+  <p>EMI, SIP, GST aur Compound Interest — sab ek jagah</p>
+</header>
+
+<!-- AD SLOT 1: Top banner. Replace data-ad-slot with your real slot ID from AdSense dashboard -->
+<div class="ad-slot">
+  <ins class="adsbygoogle"
+       style="display:block; width:100%;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="0000000000"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <span>Ad slot — AdSense approval ke baad yahan real ad dikhega</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="emi">EMI Calculator</button>
+  <button class="tab" data-tab="sip">SIP Calculator</button>
+  <button class="tab" data-tab="gst">GST Calculator</button>
+  <button class="tab" data-tab="ci">Compound Interest</button>
+</div>
+
+<main>
+
+  <!-- EMI -->
+  <div class="panel active" id="emi">
+    <div class="field">
+      <label>Loan Amount (₹)</label>
+      <input type="number" id="emi-p" value="500000">
+    </div>
+    <div class="field">
+      <label>Interest Rate (% per year)</label>
+      <input type="number" id="emi-r" value="9.5" step="0.1">
+    </div>
+    <div class="field">
+      <label>Tenure (months)</label>
+      <input type="number" id="emi-n" value="60">
+    </div>
+    <div class="result">
+      <div class="label">Monthly EMI</div>
+      <span class="result-value" id="emi-out">₹0</span>
+      <div class="breakdown"><span>Total Interest</span><span id="emi-interest">₹0</span></div>
+      <div class="breakdown"><span>Total Payment</span><span id="emi-total">₹0</span></div>
+    </div>
+    <p class="note">EMI = P × r × (1+r)^n / ((1+r)^n − 1), jahan r monthly interest rate hai.</p>
+  </div>
+
+  <!-- SIP -->
+  <div class="panel" id="sip">
+    <div class="field">
+      <label>Monthly Investment (₹)</label>
+      <input type="number" id="sip-p" value="5000">
+    </div>
+    <div class="field">
+      <label>Expected Return (% per year)</label>
+      <input type="number" id="sip-r" value="12" step="0.1">
+    </div>
+    <div class="field">
+      <label>Duration (years)</label>
+      <input type="number" id="sip-n" value="10">
+    </div>
+    <div class="result">
+      <div class="label">Maturity Value</div>
+      <span class="result-value" id="sip-out">₹0</span>
+      <div class="breakdown"><span>Total Invested</span><span id="sip-invested">₹0</span></div>
+      <div class="breakdown"><span>Estimated Gains</span><span id="sip-gains">₹0</span></div>
+    </div>
+    <p class="note">Standard SIP future-value formula (monthly compounding) use hota hai. Actual returns market par depend karte hain.</p>
+  </div>
+
+  <!-- GST -->
+  <div class="panel" id="gst">
+    <div class="field">
+      <label>Amount (₹)</label>
+      <input type="number" id="gst-p" value="1000">
+    </div>
+    <div class="field">
+      <label>GST Rate (%)</label>
+      <input type="number" id="gst-r" value="18">
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <div style="display:flex; gap:10px; font-family:-apple-system,sans-serif; font-size:0.9rem;">
+        <label style="display:flex; align-items:center; gap:6px;"><input type="radio" name="gst-type" value="add" checked style="width:auto;"> Add GST</label>
+        <label style="display:flex; align-items:center; gap:6px;"><input type="radio" name="gst-type" value="remove" style="width:auto;"> Remove GST</label>
+      </div>
+    </div>
+    <div class="result">
+      <div class="label" id="gst-label">Total Amount (GST Included)</div>
+      <span class="result-value" id="gst-out">₹0</span>
+      <div class="breakdown"><span>GST Amount</span><span id="gst-amt">₹0</span></div>
+      <div class="breakdown"><span>Base Amount</span><span id="gst-base">₹0</span></div>
+    </div>
+  </div>
+
+  <!-- Compound Interest -->
+  <div class="panel" id="ci">
+    <div class="field">
+      <label>Principal (₹)</label>
+      <input type="number" id="ci-p" value="100000">
+    </div>
+    <div class="field">
+      <label>Interest Rate (% per year)</label>
+      <input type="number" id="ci-r" value="8" step="0.1">
+    </div>
+    <div class="field">
+      <label>Time (years)</label>
+      <input type="number" id="ci-n" value="5">
+    </div>
+    <div class="field">
+      <label>Compounding Frequency</label>
+      <select id="ci-freq" style="width:100%; padding:11px 12px; font-size:1rem; border:1px solid var(--line); border-radius:6px; background:var(--panel); color:var(--ink);">
+        <option value="1">Yearly</option>
+        <option value="4">Quarterly</option>
+        <option value="12" selected>Monthly</option>
+      </select>
+    </div>
+    <div class="result">
+      <div class="label">Maturity Amount</div>
+      <span class="result-value" id="ci-out">₹0</span>
+      <div class="breakdown"><span>Interest Earned</span><span id="ci-interest">₹0</span></div>
+    </div>
+  </div>
+
+  <!-- AD SLOT 2: In-content, below the calculator. Replace data-ad-slot with your real slot ID -->
+  <div class="ad-slot">
+    <ins class="adsbygoogle"
+         style="display:block; width:100%;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="0000000001"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <span>Ad slot — AdSense approval ke baad yahan real ad dikhega</span>
+  </div>
+
+</main>
+
+<!-- AD SLOT 3: Bottom banner, above footer. Replace data-ad-slot with your real slot ID -->
+<div class="ad-slot">
+  <ins class="adsbygoogle"
+       style="display:block; width:100%;"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="0000000002"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <span>Ad slot — AdSense approval ke baad yahan real ad dikhega</span>
+</div>
+
+<footer>Yeh calculators sirf estimate ke liye hain. Financial decisions se pehle advisor se salah lein.</footer>
+
+<script>
+function fmt(n){
+  if(isNaN(n) || !isFinite(n)) return "₹0";
+  return "₹" + Math.round(n).toLocaleString('en-IN');
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+function calcEMI(){
+  const P = parseFloat(document.getElementById('emi-p').value)||0;
+  const annualR = parseFloat(document.getElementById('emi-r').value)||0;
+  const n = parseFloat(document.getElementById('emi-n').value)||0;
+  const r = annualR/12/100;
+  let emi = 0;
+  if(r===0 && n>0){ emi = P/n; }
+  else if(n>0){ emi = P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1); }
+  const total = emi*n;
+  const interest = total-P;
+  document.getElementById('emi-out').textContent = fmt(emi);
+  document.getElementById('emi-interest').textContent = fmt(interest);
+  document.getElementById('emi-total').textContent = fmt(total);
+}
+
+function calcSIP(){
+  const P = parseFloat(document.getElementById('sip-p').value)||0;
+  const annualR = parseFloat(document.getElementById('sip-r').value)||0;
+  const years = parseFloat(document.getElementById('sip-n').value)||0;
+  const n = years*12;
+  const r = annualR/12/100;
+  let fv = 0;
+  if(r===0){ fv = P*n; }
+  else{ fv = P * ((Math.pow(1+r,n)-1)/r) * (1+r); }
+  const invested = P*n;
+  const gains = fv-invested;
+  document.getElementById('sip-out').textContent = fmt(fv);
+  document.getElementById('sip-invested').textContent = fmt(invested);
+  document.getElementById('sip-gains').textContent = fmt(gains);
+}
+
+function calcGST(){
+  const P = parseFloat(document.getElementById('gst-p').value)||0;
+  const rate = parseFloat(document.getElementById('gst-r').value)||0;
+  const type = document.querySelector('input[name="gst-type"]:checked').value;
+  let base, gstAmt, total;
+  if(type==='add'){
+    base = P;
+    gstAmt = P*rate/100;
+    total = P+gstAmt;
+    document.getElementById('gst-label').textContent = 'Total Amount (GST Included)';
+  } else {
+    total = P;
+    base = P/(1+rate/100);
+    gstAmt = P-base;
+    document.getElementById('gst-label').textContent = 'Base Amount (GST Excluded)';
+  }
+  document.getElementById('gst-out').textContent = fmt(type==='add'?total:base);
+  document.getElementById('gst-amt').textContent = fmt(gstAmt);
+  document.getElementById('gst-base').textContent = fmt(base);
+}
+
+function calcCI(){
+  const P = parseFloat(document.getElementById('ci-p').value)||0;
+  const annualR = parseFloat(document.getElementById('ci-r').value)||0;
+  const t = parseFloat(document.getElementById('ci-n').value)||0;
+  const freq = parseFloat(document.getElementById('ci-freq').value)||1;
+  const amount = P*Math.pow(1+(annualR/100)/freq, freq*t);
+  const interest = amount-P;
+  document.getElementById('ci-out').textContent = fmt(amount);
+  document.getElementById('ci-interest').textContent = fmt(interest);
+}
+
+document.querySelectorAll('#emi input').forEach(el=>el.addEventListener('input', calcEMI));
+document.querySelectorAll('#sip input').forEach(el=>el.addEventListener('input', calcSIP));
+document.querySelectorAll('#gst input').forEach(el=>el.addEventListener('input', calcGST));
+document.querySelectorAll('input[name="gst-type"]').forEach(el=>el.addEventListener('change', calcGST));
+document.querySelectorAll('#ci input, #ci select').forEach(el=>el.addEventListener('input', calcCI));
+
+calcEMI(); calcSIP(); calcGST(); calcCI();
+
+// AdSense: activate each ad slot. Yeh tabhi kaam karega jab
+// (a) upar wali script tag mein real client ID daali ho, aur
+// (b) site AdSense se approved ho chuki ho. Tab tak console mein
+// harmless error aa sakta hai — usse app ke baaki function par koi asar nahi padta.
+try{
+  document.querySelectorAll('.adsbygoogle').forEach(()=>{
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  });
+}catch(e){
+  console.log('AdSense abhi activate nahi hua — real client/slot ID daalne ke baad yeh kaam karega.');
+}
+
+// Register service worker so this works as an installable PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+
+</body>
+</html>
