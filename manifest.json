@@ -2,7 +2,7 @@
   "name": "Paisa Calc - EMI SIP GST Calculator",
   "short_name": "Paisa Calc",
   "description": "EMI, SIP, GST aur Compound Interest calculator ek jagah",
-  "start_url": "/index.html",
+  "start_url": "/paisa-calc/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0a5344",
